@@ -37,7 +37,7 @@ def disconnect_cv():
 @socketio.on('write_data')
 def write_data():
     controller.start_writer()
-    socketio.sleep(0.05)
+    socketio.sleep(0.01)
     controller.update_text('Data Collection Started!')
     print('start signal received')
     file_name = file_set_up("video", SESSION)
@@ -138,9 +138,8 @@ class CVClient(eventlet_threading.Thread):
 
             # enqueue the frames
             self.all_frames.append(frame)
-            self.video_frames.append(frame)
-            if self.writer.write != True:
-                self.video_frames.popleft()
+            if self.writer.write == True:
+                self.video_frames.append(frame)
 
             self.send_data(frame, text)
 
