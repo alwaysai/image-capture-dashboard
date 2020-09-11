@@ -10,9 +10,8 @@ This alwaysAI app builds off of the app found [here](https://github.com/alwaysai
 Clone this repo into a local directory. Then cd into the `cv` folder and run `aai app configure` and make the following selections:
 - When prompted to choose a project, use the down arrow and select `Create new project`, choosing any name you like.
 - When prompted to create `alwaysai.project.json`, select `Yes`
-- When prompted to create `alwaysai.app.json`, select `Yes`
 
-The `app.py` should be automatically detected and you should not need to create that file.
+The `app.py` and `alwaysai.app.json` files should be automatically detected and you should not need to create them.
 
 You can find details on working with projects [here](https://alwaysai.co/docs/getting_started/working_with_projects.html).
 
