@@ -37,7 +37,7 @@ def disconnect_cv():
 @socketio.on('write_data')
 def write_data():
     controller.start_writer()
-    socketio.sleep(0.01)
+    socketio.sleep(0.05)
     controller.update_text('Data Collection Started!')
     print('start signal received')
     file_name = file_set_up("video", SESSION)
@@ -70,6 +70,7 @@ def write_data():
 def stop_writing():
     print('stop signal received')
     controller.stop_writer()
+    socketio.sleep(0.01)
     
 @socketio.on('take_snapshot')
 def take_snapshot():
@@ -124,7 +125,6 @@ class CVClient(eventlet_threading.Thread):
 
     def run(self):
         # loop detection
-        print("running thread")
         video_stream.start()
         # Allow Webcam to warm up
         socketio.sleep(2.0)
@@ -223,6 +223,7 @@ class Controller(object):
         print("Program Ending")
 
     def close_writer(self):
+        self.cvclient.writer.write = False
         self.cvclient.writer.close = True
 
     def start_writer(self):
