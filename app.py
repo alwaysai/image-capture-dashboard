@@ -12,12 +12,14 @@ import threading
 import logging
 from eventlet.green import threading as eventlet_threading
 import cv2
+from collections import deque
 
 app = Flask(__name__)
 socketio_logger = logging.getLogger('socketio')
 socketio = SocketIO(app, logger=socketio_logger, engineio_logger=socketio_logger)
 SAMPLE_RATE = 25
 SESSION = date_time = time.strftime("%d%H%M%S", time.localtime())
+video_stream = edgeiq.WebcamVideoStream()
 
 @app.route('/')
 def index():
@@ -35,13 +37,12 @@ def disconnect_cv():
 @socketio.on('write_data')
 def write_data():
     controller.start_writer()
+    socketio.sleep(0.05)
     controller.update_text('Data Collection Started!')
     print('start signal received')
     file_name = file_set_up("video", SESSION)
-
-    with edgeiq.WebcamVideoStream(cam=0) as video_stream, edgeiq.VideoWriter(
-            output_path=file_name, fps=SAMPLE_RATE) as video_writer:
-        
+    
+    with edgeiq.VideoWriter(output_path=file_name, fps=SAMPLE_RATE) as video_writer:
         if SAMPLE_RATE > video_stream.fps:
             raise RuntimeError(
                 "Sampling rate {} cannot be greater than the camera's FPS {}".
@@ -50,7 +51,7 @@ def write_data():
         print('Data Collection Started!')
         while True:
             t_start = time.time()
-            frame = video_stream.read()
+            frame = controller.cvclient.video_frames.popleft()
             video_writer.write_frame(frame)
             t_end = time.time() - t_start
             t_wait = (1 / SAMPLE_RATE) - t_end
@@ -69,26 +70,25 @@ def write_data():
 def stop_writing():
     print('stop signal received')
     controller.stop_writer()
-    controller.close()
-
+    
 @socketio.on('take_snapshot')
 def take_snapshot():
     """Takes a single snapshot and saves it.
     """
     print('snapshot signal received')
     file_name = file_set_up("image", SESSION)
-    with edgeiq.WebcamVideoStream(cam=0) as video_stream:
-        controller.update_text('Taking Snapshot')
-        print('Taking Snapshot')
-        frame = video_stream.read()
-        cv2.imwrite(file_name, frame)
-        controller.update_text('Snapshot Saved')
-        print('Snapshot Saved')
+    controller.update_text('Taking Snapshot')
+    print('Taking Snapshot')
+    frame = controller.cvclient.all_frames.popleft()
+    cv2.imwrite(file_name, frame)
+    controller.update_text('Snapshot Saved')
+    print('Snapshot Saved')
 
 @socketio.on('close_app')
 def close_app():
     print('Stop Signal Received')
     controller.close_writer()
+    controller.close()
 
 class CVClient(eventlet_threading.Thread):
     def __init__(self, fps, exit_event):
@@ -108,6 +108,8 @@ class CVClient(eventlet_threading.Thread):
         self._wait_t = (1/self._stream_fps)
         self.exit_event = exit_event
         self.writer = SampleWriter()
+        self.all_frames = deque()
+        self.video_frames = deque()
         super().__init__()
 
     def setup(self):
@@ -123,25 +125,32 @@ class CVClient(eventlet_threading.Thread):
     def run(self):
         # loop detection
         print("running thread")
-        with edgeiq.WebcamVideoStream(cam=0) as video_stream:
-            # Allow Webcam to warm up
-            socketio.sleep(2.0)
-            self.fps.start()
-            
-            # loop detection
-            while True:
-                frame = video_stream.read()
-                text = [""]
-                text.append(self.writer.text)
-
-                self.send_data(frame, text)
-
-                self.fps.update()
-
-                if self.check_exit():
-                    break
+        video_stream.start()
+        # Allow Webcam to warm up
+        socketio.sleep(2.0)
+        self.fps.start()
         
+        # loop detection
+        while True:
+            frame = video_stream.read()
+            text = [""]
+            text.append(self.writer.text)
 
+            # enqueue the frames
+            self.all_frames.append(frame)
+            self.video_frames.append(frame)
+            if self.writer.write != True:
+                self.video_frames.popleft()
+
+            self.send_data(frame, text)
+
+            self.fps.update()
+
+            if self.check_exit():
+                video_stream.stop()
+                break
+        
+        
     def _convert_image_to_jpeg(self, image):
         """Converts a numpy array image to JPEG
 
