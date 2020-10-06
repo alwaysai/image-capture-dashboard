@@ -2,3 +2,5 @@ __pycache__
 alwaysai.project.json
 venv
 samples
+alwaysai.target.json
+models
