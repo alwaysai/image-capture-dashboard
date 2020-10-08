@@ -1,12 +1,9 @@
 import time
 import edgeiq
-import argparse
-import socketio as so
 from helpers import *
 from sample_writer import *
 from flask_socketio import SocketIO
 from flask import Flask, render_template, request
-import cv2
 import base64
 import threading
 import logging
