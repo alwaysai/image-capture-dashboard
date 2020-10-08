@@ -86,7 +86,7 @@ def take_snapshot():
 def close_app():
     print('Stop Signal Received')
     controller.close_writer()
-    controller.close()
+
 
 class CVClient(eventlet_threading.Thread):
     def __init__(self, fps, exit_event):
