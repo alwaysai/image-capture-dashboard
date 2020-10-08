@@ -77,7 +77,7 @@ def take_snapshot():
     file_name = file_set_up("image", SESSION)
     controller.update_text('Taking Snapshot')
     print('Taking Snapshot')
-    frame = controller.cvclient.all_frames.popleft()
+    frame = controller.cvclient.all_frames.pop()
     cv2.imwrite(file_name, frame)
     controller.update_text('Snapshot Saved')
     print('Snapshot Saved')
