@@ -7,6 +7,7 @@ Helper functions not associated with a particular
 class are defined here for modularity.
 """
 
+FOLDER = 'samples'
 
 def file_set_up(sample_type, session):
     """Takes in a file type, either
@@ -21,18 +22,20 @@ def file_set_up(sample_type, session):
     """
     folder = "Images" if sample_type == "image" else "Videos"
     
-    if not os.path.exists('samples'):
-        os.mkdir('samples')
+    if not os.path.exists(FOLDER):
+        os.mkdir(FOLDER)
 
-    if not os.path.exists('samples/{}'.format(session)):
-        os.mkdir('samples/{}'.format(session))
+    if not os.path.exists(os.path.join(FOLDER, session)):
+        os.mkdir(os.path.join(FOLDER, session))
 
-    if not os.path.exists('samples/{}/{}'.format(session, folder)):
-        os.mkdir('samples/{}/{}'.format(session, folder))
+    if not os.path.exists(os.path.join(FOLDER, session, folder)):
+        os.mkdir(os.path.join(FOLDER, session, folder))
 
-    if sample_type == "image":
-        file_name = 'samples/{}/{}/{}'.format(session, folder, time.asctime().replace(" ", "_").replace(":", "_") + ".jpeg")
+    if sample_type == 'image':
+        name = time.asctime().replace(' ', '_').replace(':', '_') + '.jpeg'
     else:
-        file_name = 'samples/{}/{}/{}'.format(session, folder, time.asctime().replace(" ", "_").replace(":", "_") + ".avi")
+        name = time.asctime().replace(' ', '_').replace(':', '_') + '.avi'
+    
+    file_name = os.path.join(FOLDER, session, folder, name)
 
     return file_name
