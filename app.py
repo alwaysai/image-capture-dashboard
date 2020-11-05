@@ -3,7 +3,7 @@ import edgeiq
 from helpers import *
 from sample_writer import *
 from flask_socketio import SocketIO
-from flask import Flask, render_template, request
+from flask import Flask, render_template, request, send_file, url_for, redirect
 import base64
 import threading
 import logging
@@ -11,12 +11,12 @@ from eventlet.green import threading as eventlet_threading
 import cv2
 from collections import deque
 
-app = Flask(__name__)
+app = Flask(__name__, template_folder='./templates/')
 socketio_logger = logging.getLogger('socketio')
 socketio = SocketIO(app, logger=socketio_logger, engineio_logger=socketio_logger)
 SAMPLE_RATE = 25
-SESSION = date_time = time.strftime("%d%H%M%S", time.localtime())
-video_stream = edgeiq.WebcamVideoStream()
+SESSION = time.strftime("%d%H%M%S", time.localtime())
+video_stream = edgeiq.WebcamVideoStream(cam=0)
 
 @app.route('/')
 def index():
@@ -39,7 +39,7 @@ def write_data():
     print('start signal received')
     file_name = file_set_up("video", SESSION)
     
-    with edgeiq.VideoWriter(output_path=file_name, fps=SAMPLE_RATE) as video_writer:
+    with edgeiq.VideoWriter(output_path=file_name, fps=SAMPLE_RATE, codec='H264') as video_writer:
         if SAMPLE_RATE > video_stream.fps:
             raise RuntimeError(
                 "Sampling rate {} cannot be greater than the camera's FPS {}".
@@ -86,6 +86,36 @@ def take_snapshot():
 def close_app():
     print('Stop Signal Received')
     controller.close_writer()
+    controller.close()
+
+@app.route('/download/<filename>', methods=['GET'])
+def download(filename):
+    file = os.path.join(".", get_file(filename))
+    return send_file(file, as_attachment=True)
+
+@app.route('/videos', methods=['GET'])
+def videos():
+    videos = {}
+    files = get_all_files()
+    if files:
+        for f in files:
+            videos[f] = (os.path.join(os.path.sep, get_file(f)))
+    return render_template('videos.html', videos=videos)
+
+@app.route('/view_video/<filename>', methods=['GET'])
+def view_video(filename):
+    file = os.path.join(os.path.sep, get_file(filename))
+    if '.jpeg' in file:
+        return render_template('view_video.html', image=file, filename=filename)
+    else:
+        return render_template('view_video.html', video=file, filename=filename)
+
+@app.route('/delete/<filename>', methods=['GET'])
+def delete(filename):
+    file = os.path.join(".", get_file(filename))
+    if file is not None:
+        delete_file(file)
+    return redirect(url_for('videos'))
 
 
 class CVClient(eventlet_threading.Thread):
@@ -162,7 +192,7 @@ class CVClient(eventlet_threading.Thread):
         # utf-8 encoding
         frame = base64.b64encode(frame).decode('utf-8')
         return "data:image/jpeg;base64,{}".format(frame)
-
+    
     def send_data(self, frame, text):
         """Sends image and text to the flask server.
 
@@ -179,7 +209,8 @@ class CVClient(eventlet_threading.Thread):
                     'server2web',
                     {
                         'image': self._convert_image_to_jpeg(frame),
-                        'text': '<br />'.join(text)
+                        'text': '<br />'.join(text)#,
+                        #'data': get_all_files()
                     })
             socketio.sleep(0.0001)
 

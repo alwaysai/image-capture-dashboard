@@ -7,7 +7,7 @@ This alwaysAI app builds off of the app found [here](https://github.com/alwaysai
 - [alwaysAI account](https://alwaysai.co/auth?register=true)
 - [alwaysAI CLI tools](https://dashboard.alwaysai.co/docs/getting_started/development_computer_setup.html)
 
-Clone this repo into a local directory. Then cd into the `cv` folder and run `aai app configure` and make the following selections:
+Clone this repo into a local directory. Then cd into the project folder and run `aai app configure` and make the following selections:
 - When prompted to choose a project, use the down arrow and select `Create new project`, choosing any name you like.
 - When prompted to create `alwaysai.project.json`, select `Yes`
 
@@ -40,10 +40,13 @@ Once the application has started, you can interact with the data collection app 
 - Press `Take Snapshot` to take a single image
 - Press `Start Collection` to start recording a video
 - Press `Stop Collection` to stop recording a video
+- Press `View All Data` to see collected videos and images.
 
-You can take as many snapshots and videos as you'd like
+You can take as many snapshots and videos as you'd like.
 
-When you're done with data collection, you can press the **red square** in the upper righthand square of the text panel of the browser display to close the data collection app. Then return to the console window where you started the flask server and press control-C to bring down Flask.
+Once you're on the `View All Data` page, you can select a video or image and on the following page you can download the file to your Downloads folder, or delete it from the working directory. This is especially useful for viewing media on a remote (edge) device. All media downloaded in this case will be to your development machine, to be used in annotation and training.
+
+When you're done with data collection, you can press the **red square** in the upper righthand square of the text panel on the home page to close the data collection app. Then return to the console window where you started the flask server and press control-C to bring down Flask.
 
 #### Example Output
 
@@ -70,6 +73,6 @@ elapsed time: 109.30
 approx. FPS: 27.96
 Program Ending
 ```
-You will see files generated within `cv/samples/` for each snapshot or video collection you take, as in the image below
+You will see files generated within `static/samples/` for each snapshot or video collection you take, as in the image below
 
 ![image](./static/folder_output.png)

@@ -1,0 +1,60 @@
+{% extends "base.html" %}
+
+{% block body %}
+<body class="tos-bg">
+
+    <nav class="navbar navbar-expand-lg navbar-light bg-light">
+        <a class="navbar-brand" href="http://alwaysai.co/" target="_blank"><div class="alwaysai-logos-svg-horizontal-logo-red-black"></div>
+        </a>
+        <button class="navbar-toggler" type="button" data-toggle="collapse" data-target="#navbarText"
+        aria-controls="navbarText" aria-expanded="false" aria-label="Toggle navigation">
+        <span class="navbar-toggler-icon"></span>
+        </button>
+        <div class="collapse navbar-collapse" id="navbarText">
+        <span class="navbar-nav mr-auto"></span>
+
+        <ul class="navbar-nav ">
+
+            <li class="nav-item">
+            <a class="nav-link" href="https://alwaysai.co/docs" target="_blank">Documentation</a>
+            </li>
+            <li class="nav-item">
+            <a class="nav-link" href="https://alwaysai.co/support" target="_blank">Support</a>
+            </li>
+        </ul>
+        </div>
+    </nav>
+    <div class="container" min-width= "720px" width="80%">
+
+        <div class="dash-sub-title">
+          <h1>DATA REVIEW</h1>
+        </div>
+    
+        <div class="card-deck">
+            <div style="width: 70%; padding: 20px">
+                {% if image %}
+                    <img id="streamer-image" src="{{image}}" style="max-width: 640px; max-height: 480px;">
+                {% elif video %}
+                    <video width="640" height="480" controls>
+                        <source src="{{video}}" type="video/mp4"> VIDEO NOT SUPPORTED
+                    </video>
+                {% endif%}
+                <br>
+                <br>
+                <div class="container" min-width= "1024px" width="100%">
+                    <a href="{{url_for('download', filename=filename)}}"><button class="btn video-btn"><i class="fa fa-download"></i> Download</button></a>
+                    <a href="{{url_for('delete', filename=filename)}}"><button class="btn stop-btn"><i class="fa fa-remove"></i> Delete</button></a>
+                </div>
+                <br>
+                <br>
+                <div class="container" min-width= "1024px" width="100%">
+                  <a href="{{url_for('index', filename=filename)}}"><button class="btn home-btn"><i class="fa fa-home"></i> Home</button></a>
+                  <a href="{{url_for('videos')}}"><button class="btn data-btn"><i class="fa fa-files-o"></i> View All Data</button></a>
+                </div>
+            </div>
+        </div>
+        <br>
+        <br>
+    </div>
+</body>
+{% endblock %}
