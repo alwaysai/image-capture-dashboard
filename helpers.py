@@ -1,4 +1,3 @@
-
 import os
 import time
 import shutil
@@ -10,6 +9,7 @@ class are defined here for modularity.
 STATIC = 'static'
 HOME = 'samples'
 FOLDER = os.path.join('static', 'samples')
+
 
 def file_set_up(sample_type, session):
     """Takes in a file type, either
@@ -39,10 +39,11 @@ def file_set_up(sample_type, session):
         name = time.asctime().replace(' ', '_').replace(':', '_') + '.jpeg'
     else:
         name = time.asctime().replace(' ', '_').replace(':', '_') + '.mp4'
-    
+
     file_name = os.path.join(FOLDER, session, folder, name)
 
     return file_name
+
 
 def get_all_files():
     all_files = []
@@ -56,6 +57,7 @@ def get_all_files():
         all_files = sorted(all_files)
         return all_files
 
+
 def get_file(filename):
     if not os.path.exists(FOLDER):
         return None
@@ -64,8 +66,9 @@ def get_file(filename):
             for file_set_up in files:
                 if file_set_up == filename:
                     return os.path.join(root, file_set_up)
-                     
-    return None    
+
+    return None
+
 
 def delete_file(filename):
     if os.path.exists(filename):
@@ -76,7 +79,8 @@ def delete_file(filename):
             if os.path.exists(f):
                 os.rmdir(f)
         empties = get_empty_dirs()
-    
+
+
 def get_empty_dirs():
     empty_files = []
     for root, dirs, _, in os.walk(FOLDER):
@@ -84,8 +88,7 @@ def get_empty_dirs():
             empty_files.append(root)
         for d in dirs:
             if os.path.exists(os.path.join(root, d)) \
-                and len(os.listdir(os.path.join(root, d))) == 1 \
-                and '.DS_Store' in os.listdir(os.path.join(root, d)):
-                    shutil.rmtree(os.path.join(root, d))
+                    and len(os.listdir(os.path.join(root, d))) == 1 \
+                    and '.DS_Store' in os.listdir(os.path.join(root, d)):
+                shutil.rmtree(os.path.join(root, d))
     return empty_files
-        

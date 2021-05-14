@@ -10,6 +10,7 @@ import logging
 from eventlet.green import threading as eventlet_threading
 import cv2
 from collections import deque
+import os
 
 app = Flask(__name__, template_folder='./templates/')
 socketio_logger = logging.getLogger('socketio')
@@ -18,18 +19,22 @@ SAMPLE_RATE = 25
 SESSION = time.strftime("%d%H%M%S", time.localtime())
 video_stream = edgeiq.WebcamVideoStream(cam=0)
 
+
 @app.route('/')
 def index():
     """Home page."""
     return render_template('index.html')
 
+
 @socketio.on('connect')
 def connect_cv():
     print('[INFO] connected: {}'.format(request.sid))
 
+
 @socketio.on('disconnect')
 def disconnect_cv():
     print('[INFO] disconnected: {}'.format(request.sid))
+
 
 @socketio.on('write_data')
 def write_data():
@@ -38,7 +43,7 @@ def write_data():
     controller.update_text('Data Collection Started!')
     print('start signal received')
     file_name = file_set_up("video", SESSION)
-    
+
     with edgeiq.VideoWriter(output_path=file_name, fps=SAMPLE_RATE, codec='H264') as video_writer:
         if SAMPLE_RATE > video_stream.fps:
             raise RuntimeError(
@@ -55,20 +60,22 @@ def write_data():
             if t_wait > 0:
                 time.sleep(t_wait)
 
-            if controller.is_writing() == False:
+            if controller.is_writing() is False:
                 print("ended")
                 controller.update_text('Data Collection Ended')
                 print('Data Collection Ended')
                 break
-            
+
             socketio.sleep(0.0001)
+
 
 @socketio.on('stop_writing')
 def stop_writing():
     print('stop signal received')
     controller.stop_writer()
     socketio.sleep(0.01)
-    
+
+
 @socketio.on('take_snapshot')
 def take_snapshot():
     """Takes a single snapshot and saves it.
@@ -82,16 +89,19 @@ def take_snapshot():
     controller.update_text('Snapshot Saved')
     print('Snapshot Saved')
 
+
 @socketio.on('close_app')
 def close_app():
     print('Stop Signal Received')
     controller.close_writer()
     controller.close()
 
+
 @app.route('/download/<filename>', methods=['GET'])
 def download(filename):
     file = os.path.join(".", get_file(filename))
     return send_file(file, as_attachment=True)
+
 
 @app.route('/videos', methods=['GET'])
 def videos():
@@ -102,6 +112,7 @@ def videos():
             videos[f] = (os.path.join(os.path.sep, get_file(f)))
     return render_template('videos.html', videos=videos)
 
+
 @app.route('/view_video/<filename>', methods=['GET'])
 def view_video(filename):
     file = os.path.join(os.path.sep, get_file(filename))
@@ -109,6 +120,7 @@ def view_video(filename):
         return render_template('view_video.html', image=file, filename=filename)
     else:
         return render_template('view_video.html', video=file, filename=filename)
+
 
 @app.route('/delete/<filename>', methods=['GET'])
 def delete(filename):
@@ -123,8 +135,8 @@ class CVClient(eventlet_threading.Thread):
         """The original code was created by Eric VanBuhler
         (https://github.com/alwaysai/video-streamer) and is modified here.
 
-        Initializes a customizable streamer object that 
-        communicates with a flask server via sockets. 
+        Initializes a customizable streamer object that
+        communicates with a flask server via sockets.
 
         Args:
             stream_fps (float): The rate to send frames to the server.
@@ -156,7 +168,7 @@ class CVClient(eventlet_threading.Thread):
         # Allow Webcam to warm up
         socketio.sleep(2.0)
         self.fps.start()
-        
+
         # loop detection
         while True:
             frame = video_stream.read()
@@ -165,7 +177,7 @@ class CVClient(eventlet_threading.Thread):
 
             # enqueue the frames
             self.all_frames.append(frame)
-            if self.writer.write == True:
+            if self.writer.write is True:
                 self.video_frames.append(frame)
 
             self.send_data(frame, text)
@@ -175,8 +187,7 @@ class CVClient(eventlet_threading.Thread):
             if self.check_exit():
                 video_stream.stop()
                 break
-        
-        
+
     def _convert_image_to_jpeg(self, image):
         """Converts a numpy array image to JPEG
 
@@ -192,7 +203,7 @@ class CVClient(eventlet_threading.Thread):
         # utf-8 encoding
         frame = base64.b64encode(frame).decode('utf-8')
         return "data:image/jpeg;base64,{}".format(frame)
-    
+
     def send_data(self, frame, text):
         """Sends image and text to the flask server.
 
@@ -209,8 +220,7 @@ class CVClient(eventlet_threading.Thread):
                     'server2web',
                     {
                         'image': self._convert_image_to_jpeg(frame),
-                        'text': '<br />'.join(text)#,
-                        #'data': get_all_files()
+                        'text': '<br />'.join(text)
                     })
             socketio.sleep(0.0001)
 
@@ -227,6 +237,7 @@ class CVClient(eventlet_threading.Thread):
         """Disconnects the cv client socket.
         """
         self.exit_event.set()
+
 
 class Controller(object):
     def __init__(self):
@@ -266,7 +277,9 @@ class Controller(object):
     def update_text(self, text):
         self.cvclient.writer.text = text
 
+
 controller = Controller()
+
 
 if __name__ == "__main__":
     try:
