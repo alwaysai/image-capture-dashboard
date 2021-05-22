@@ -1,5 +1,5 @@
 # Interactive Image Capture App
-This alwaysAI app builds off of the app found [here](https://github.com/alwaysai/video-streamer) to provide a cusomized data collection server that allows the user to take snap shots or record videos and store them for later use.
+This alwaysAI app builds off of the app found [here](https://github.com/alwaysai/video-streamer) to provide a customized data collection server that allows the user to take snap shots or record videos and store them for later use.
 
 ![image](./static/browser_output.png)
 
